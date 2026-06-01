@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $port = 8080
-$root = [System.IO.Path]::GetFullPath($PSScriptRoot)
+$root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "public"))
 $rootPrefix = $root.TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
 $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $port)
 
