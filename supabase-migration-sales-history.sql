@@ -143,3 +143,5 @@ $$;
 
 revoke all on function public.update_inventory_product(uuid, text, text, text, text, integer, numeric, numeric) from public;
 grant execute on function public.update_inventory_product(uuid, text, text, text, text, integer, numeric, numeric) to authenticated;
+
+notify pgrst, 'reload schema';

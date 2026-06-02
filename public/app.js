@@ -84,6 +84,16 @@ function showError(target, message) {
   target.textContent = message || "";
 }
 
+function formatDatabaseError(error) {
+  if (error.code === "PGRST202") {
+    return "La base de datos todavia no tiene instalada la ultima actualizacion. Ejecuta la migracion de ventas en Supabase.";
+  }
+  if (error.code === "23505") {
+    return "Ya existe un producto con ese codigo.";
+  }
+  return error.message;
+}
+
 function getProduct(productId) {
   return state.products.find((product) => product.id === productId);
 }
@@ -298,8 +308,7 @@ async function handleProductSubmit(event) {
     elements.productDialog.close();
     await loadInventory();
   } catch (error) {
-    const message = error.code === "23505" ? "Ya existe un producto con ese codigo." : error.message;
-    showError(elements.productFormError, message);
+    showError(elements.productFormError, formatDatabaseError(error));
   }
 }
 
@@ -339,7 +348,7 @@ async function handleMovementSubmit(event) {
     elements.movementDialog.close();
     await loadInventory();
   } catch (error) {
-    showError(elements.movementFormError, error.message);
+    showError(elements.movementFormError, formatDatabaseError(error));
   }
 }
 
