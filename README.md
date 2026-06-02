@@ -30,6 +30,8 @@ Cuando la base de datos ya fue creada con una version anterior, ejecuta el conte
 
 Para reiniciar automaticamente los contadores de vendidos y ganancias cuando las existencias lleguen a cero, ejecuta despues `supabase-migration-reset-sales-at-zero.sql`.
 
+Para mostrar el resumen final de vendidos y ganancias en el ultimo movimiento antes de reiniciar los contadores, ejecuta despues `supabase-migration-cycle-summary.sql`.
+
 ## Publicar con Cloudflare Workers
 
 1. Sube estos archivos al repositorio de GitHub.

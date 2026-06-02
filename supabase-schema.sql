@@ -142,6 +142,7 @@ declare
   current_user_id uuid := auth.uid();
   current_product public.products%rowtype;
   difference integer;
+  movement_note text;
 begin
   if current_user_id is null then
     raise exception 'Debes iniciar sesion.';
@@ -175,6 +176,22 @@ begin
     raise exception 'No hay existencias suficientes para registrar esa salida.';
   end if;
 
+  movement_note := trim(p_note);
+  if current_product.quantity + difference = 0 then
+    movement_note := concat_ws(
+      '; ',
+      nullif(movement_note, ''),
+      format(
+        'Cierre de ciclo: vendidos %s; ganancias Bs %s',
+        current_product.sold_units + case when p_type = 'exit' then p_quantity else 0 end,
+        current_product.profit_total + case
+          when p_type = 'exit' then p_quantity * (current_product.sale_price - current_product.purchase_price)
+          else 0
+        end
+      )
+    );
+  end if;
+
   update public.products
     set quantity = quantity + difference,
         sold_units = case
@@ -192,7 +209,7 @@ begin
     where id = current_product.id;
 
   insert into public.movements (owner_id, product_id, product_name, type, quantity, note)
-    values (current_user_id, current_product.id, current_product.name, p_type, difference, trim(p_note));
+    values (current_user_id, current_product.id, current_product.name, p_type, difference, movement_note);
 end;
 $$;
 
