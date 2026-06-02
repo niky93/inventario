@@ -66,10 +66,16 @@ begin
 
   update public.products
     set quantity = quantity + difference,
-        sold_units = sold_units + case when p_type = 'exit' then p_quantity else 0 end,
-        profit_total = profit_total + case
-          when p_type = 'exit' then p_quantity * (sale_price - purchase_price)
-          else 0
+        sold_units = case
+          when quantity + difference = 0 then 0
+          else sold_units + case when p_type = 'exit' then p_quantity else 0 end
+        end,
+        profit_total = case
+          when quantity + difference = 0 then 0
+          else profit_total + case
+            when p_type = 'exit' then p_quantity * (sale_price - purchase_price)
+            else 0
+          end
         end,
         updated_at = now()
     where id = current_product.id;

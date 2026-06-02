@@ -28,6 +28,8 @@ La clave publica puede incluirse en el navegador. No copies una clave `service_r
 
 Cuando la base de datos ya fue creada con una version anterior, ejecuta el contenido de `supabase-migration-sales-history.sql` desde `SQL Editor`. Esta migracion agrega el conteo de ventas, las ganancias y el historial de ediciones sin borrar productos existentes.
 
+Para reiniciar automaticamente los contadores de vendidos y ganancias cuando las existencias lleguen a cero, ejecuta despues `supabase-migration-reset-sales-at-zero.sql`.
+
 ## Publicar con Cloudflare Workers
 
 1. Sube estos archivos al repositorio de GitHub.
