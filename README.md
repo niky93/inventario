@@ -11,6 +11,7 @@ Aplicacion web sencilla para administrar productos y existencias desde una compu
 - Ver productos con stock bajo y el valor de compra del inventario.
 - Exportar los productos a CSV para abrirlos en Excel.
 - Usar los mismos datos desde distintos dispositivos mediante Supabase.
+- Consultar unidades vendidas, ganancias e historial de cambios de nombre o precio.
 
 ## Configurar la base de datos compartida
 
@@ -22,6 +23,10 @@ Aplicacion web sencilla para administrar productos y existencias desde una compu
 6. Reemplaza los marcadores dentro de `config.js` con esos dos valores.
 
 La clave publica puede incluirse en el navegador. No copies una clave `service_role` ni una clave secreta dentro de `config.js`.
+
+## Actualizar una base existente
+
+Cuando la base de datos ya fue creada con una version anterior, ejecuta el contenido de `supabase-migration-sales-history.sql` desde `SQL Editor`. Esta migracion agrega el conteo de ventas, las ganancias y el historial de ediciones sin borrar productos existentes.
 
 ## Publicar con Cloudflare Workers
 

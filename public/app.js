@@ -46,9 +46,11 @@ const elements = {
   productPurchasePrice: document.querySelector("#product-purchase-price"),
   productSalePrice: document.querySelector("#product-sale-price"),
   productTableBody: document.querySelector("#product-table-body"),
+  profitValue: document.querySelector("#profit-value"),
   purchaseValue: document.querySelector("#purchase-value"),
   searchInput: document.querySelector("#search-input"),
   signOutButton: document.querySelector("#sign-out-button"),
+  soldCount: document.querySelector("#sold-count"),
   unitCount: document.querySelector("#unit-count"),
   userEmail: document.querySelector("#user-email"),
 };
@@ -97,6 +99,8 @@ function mapProduct(product) {
     minStock: Number(product.min_stock),
     purchasePrice: Number(product.purchase_price),
     salePrice: Number(product.sale_price),
+    soldUnits: Number(product.sold_units || 0),
+    profitTotal: Number(product.profit_total || 0),
   };
 }
 
@@ -140,11 +144,15 @@ function renderStats() {
     0,
   );
   const lowStock = state.products.filter((product) => product.quantity <= product.minStock).length;
+  const soldUnits = state.products.reduce((total, product) => total + product.soldUnits, 0);
+  const profitTotal = state.products.reduce((total, product) => total + product.profitTotal, 0);
 
   elements.productCount.textContent = state.products.length;
   elements.unitCount.textContent = units;
   elements.purchaseValue.textContent = formatMoney(purchaseValue);
   elements.lowStockCount.textContent = lowStock;
+  elements.soldCount.textContent = soldUnits;
+  elements.profitValue.textContent = formatMoney(profitTotal);
 }
 
 function renderCategories() {
@@ -181,6 +189,8 @@ function renderProducts() {
           <td><span class="stock-badge ${lowStock ? "stock-low" : "stock-ok"}">${product.quantity}</span></td>
           <td>${formatMoney(product.purchasePrice)}</td>
           <td>${formatMoney(product.salePrice)}</td>
+          <td>${product.soldUnits}</td>
+          <td>${formatMoney(product.profitTotal)}</td>
           <td>
             <div class="actions">
               <button class="button secondary" type="button" data-action="movement" data-id="${product.id}">Movimiento</button>
@@ -196,7 +206,7 @@ function renderProducts() {
 }
 
 function renderMovements() {
-  const labels = { entry: "Entrada", exit: "Salida", adjustment: "Ajuste", initial: "Inicial" };
+  const labels = { entry: "Entrada", exit: "Venta", adjustment: "Ajuste", initial: "Inicial", edit: "Edicion" };
 
   elements.movementTableBody.innerHTML = state.movements
     .map(
@@ -204,7 +214,7 @@ function renderMovements() {
         <tr>
           <td>${new Intl.DateTimeFormat("es-BO", { dateStyle: "short", timeStyle: "short" }).format(new Date(movement.createdAt))}</td>
           <td>${escapeHtml(movement.productName)}</td>
-          <td><span class="movement-badge ${movement.type === "initial" ? "adjustment" : movement.type}">${labels[movement.type]}</span></td>
+          <td><span class="movement-badge ${["initial", "edit"].includes(movement.type) ? "adjustment" : movement.type}">${labels[movement.type]}</span></td>
           <td>${movement.quantity > 0 ? "+" : ""}${movement.quantity}</td>
           <td>${escapeHtml(movement.note || "-")}</td>
         </tr>
@@ -259,7 +269,16 @@ async function handleProductSubmit(event) {
 
   try {
     if (id) {
-      const { error } = await db.from("products").update(values).eq("id", id);
+      const { error } = await db.rpc("update_inventory_product", {
+        p_product_id: id,
+        p_name: values.name,
+        p_code: values.code,
+        p_category: values.category,
+        p_description: values.description,
+        p_min_stock: values.min_stock,
+        p_purchase_price: values.purchase_price,
+        p_sale_price: values.sale_price,
+      });
       if (error) throw error;
     } else {
       const initialStock = Number(elements.productInitialStock.value);
@@ -337,7 +356,7 @@ async function deleteProduct(productId) {
 }
 
 function exportCsv() {
-  const headings = ["Nombre", "Codigo", "Categoria", "Caracteristicas", "Cantidad", "Stock minimo", "Precio compra", "Precio venta"];
+  const headings = ["Nombre", "Codigo", "Categoria", "Caracteristicas", "Cantidad", "Stock minimo", "Precio compra", "Precio venta", "Vendidos", "Ganancias"];
   const values = state.products.map((product) => [
     product.name,
     product.code,
@@ -347,6 +366,8 @@ function exportCsv() {
     product.minStock,
     product.purchasePrice,
     product.salePrice,
+    product.soldUnits,
+    product.profitTotal,
   ]);
   const csv = [headings, ...values]
     .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(","))
